@@ -11,28 +11,29 @@ namespace CadastroAlunoTest
     public class AlunoTest
     {
         [Theory]
-        [InlineData("Joao", "Turma 2")]
+        [InlineData("wesleyson", "Turma 1")]
         [InlineData("pedro", "Turma 3")]
         [InlineData(" ", " ")]
         [InlineData("J ", " 2")]
         [InlineData("", "")]
-        [InlineData("Joao", "Turma 2")]
-        [InlineData("Joao", "Turma 2")]
+        [InlineData("wesleyson", "Turma 1")]
+        [InlineData("wesleyson", "Turma 1")]
         public void AtualizarDados(string nome, string turma)
         {
-
+            // Atualizando os nome e turma
             Aluno aluno = new Aluno();
             aluno.AtualizarDados(nome, turma);
             Assert.Equal(aluno.Nome, nome);
             Assert.Equal(aluno.Turma, turma);
         }
+        // Usando Theory
         [Theory]
         [InlineData(6)]
         [InlineData(7)]
         [InlineData(8)]
         [InlineData(9)]
         [InlineData(10)]
-
+        
         public void VerificarAprovacao_MediaMaior(int n1)
         {
             Aluno aluno = new Aluno();

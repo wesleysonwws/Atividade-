@@ -1,155 +1,144 @@
-﻿using System;
+﻿using CadastroAluno.Contracts;
+using CadastroAluno.Controllers;
+using CadastroAluno.Models;
+using CadastroAluno.Repository;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using CadastroAluno.Data;
-using CadastroAluno.Models;
-using CadastroAluno.Contracts;
+using Xunit;
 
-namespace CadastroAluno.Controllers
+namespace CadastroAlunoTest
 {
-    public class AlunosController : Controller
+    public class AlunoControllerTest
     {
-        private readonly IAlunoRepository _context;
+        // Ussando Moq
+        Mock<IAlunoRepository> _repository;
+        Aluno alunoValido;
+        Aluno alunoValido1;
 
-        public AlunosController(IAlunoRepository context)
+        public AlunoControllerTest()
         {
-            _context = context;
+            _repository = new Mock<IAlunoRepository>();
+            alunoValido = new Aluno()
+            {
+                Id = 1,
+                Nome = "Nome",
+                Media = 8,
+                Turma = "Turma 1"
+            };
+            alunoValido1 = new Aluno()
+            {
+                Id = -2,
+                Nome = "",
+                Media = 11,
+                Turma = ""
+            };
         }
 
-        // GET: Alunos
-        public IActionResult Index()
+        [Fact]
+        public void ChamaAlunos_ExecutaAcao_RetornaOkAction()
         {
-            return View(_context.Index());
+            //Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            // Action
+            var result = controller.Index();
+            // Assert
+            Assert.IsType<ViewResult>(result);
         }
-        public IActionResult Details(int? id)
+        [Fact(DisplayName = "Index  Chama Repo 1 Vez")]
+        public void ModelStateValida_ChamaRepositorioUmaVez()
         {
-            if (id == null || id < 1)
-            {
-                return BadRequest();
-            }
+            //Assert
+            AlunosController controller = new AlunosController(_repository.Object);
+            controller.Index();
+            
 
-            var aluno = _context.Details(id);
-            if (aluno == null)
-            {
-                return NotFound();
-            }
-
-
-            return View(aluno);
+            _repository.Verify(repo => repo.Index(), Times.Once);
         }
-        // GET: Alunos/Details/5
-        public IActionResult Create(int id)
+        [Fact(DisplayName = "ALuno Inexistente NotFound")]
+        public void AlunoInexistente_RetornaNotFound()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            //Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            //Act
+            _repository.Setup(repo => repo.Details(1)).Returns(alunoValido);
+            //Assert
+            var consulta = controller.Details(2);
 
-            var aluno = _context.Details(id);
-            if (aluno == null)
-            {
-                return NotFound();
-            }
-
-            return View(aluno);
+            Assert.IsType<NotFoundResult>(consulta);
         }
-
-        // GET: Alunos/Create
-        public IActionResult Create()
+        [Fact(DisplayName = "Aluno Inexistente BadRequest")]
+        public void AlunoInexistente_RetornBadRequest()
         {
-            return View();
+            //Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            //Act
+            var consulta = controller.Details(-1);
+            //Assert
+            Assert.IsType<BadRequestResult>(consulta);
         }
-
-        // POST: Alunos/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Id,Nome,Turma,Media")] Aluno aluno)
+        [Fact(DisplayName = "Details Chama Repo 1 Vez")]
+        public void DetailsAluno_ModelStateValida_ChamaRepositorioUmaVez()
         {
-            if (ModelState.IsValid)
-            {
-
-                _context.Create(aluno);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(aluno);
+            // Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            //Act
+            _repository.Setup(repo => repo.Details(1));
+            controller.Create(1);
+            //Assert
+            _repository.Verify(repo => repo.Details(1), Times.Once);
         }
-
-        // GET: Alunos/Edit/5
-        public IActionResult Edit(int? id)
+        [Fact(DisplayName = "Details Return ViewResult")]
+        public void ExecutaAcao_RetornaViewResul()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var aluno = _context.Details(id);
-            if (aluno == null)
-            {
-                return NotFound();
-            }
-            return View(aluno);
+            //Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            //Act
+            _repository.Setup(repo => repo.Details(1)).Returns(alunoValido);
+            var result = controller.Create(1);
+            //Assert
+            Assert.IsType<ViewResult>(result);
         }
-
-        // POST: Alunos/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("Id,Nome,Turma,Media")] Aluno aluno)
+        [Fact(DisplayName = "Create Return ViewResult")]
+        public void ExecutaAcao_RetornaViewResultSempre()
         {
-            if (id != aluno.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                _context.Edit(id, aluno);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(aluno);
+            //Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            //Action
+            _repository.Setup(repo => repo.Create(alunoValido)).Returns(alunoValido);
+            // Assert
+            var result = controller.Create(alunoValido);
+            Assert.IsType<RedirectToActionResult>(result);
         }
+        [Fact(DisplayName = "[HttpPost] Create() ou RedirectToAction ")]
+        public void ValidaDados_RetornaResposta()
+        {   ////Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            //Action
+            _repository.Setup(repo => repo.Create(alunoValido)).Returns(alunoValido);
+            var result = controller.Create(alunoValido);
+            // Assert
+            _repository.Verify(repo => repo.Create(alunoValido), Times.Once);
+            Assert.IsType<RedirectToActionResult>(result);
+        }
+        [Fact(DisplayName = " RedirectToAction ")]
+        public void ValidaDados_RetornaResposta_NEgativo()
+        {   ////Arrange
+            AlunosController controller = new AlunosController(_repository.Object);
+            controller.ModelState.AddModelError("", "");
+            //Action
 
-        // GET: Alunos/Delete/5
-        public IActionResult Delete(int id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var aluno = _context.Details(id);
-            if (aluno == null)
-            {
-                return NotFound();
-            }
-
-            return View(aluno);
+            var result = controller.Create(alunoValido1);
+            // Assert
+            _repository.Verify(repo => repo.Create(alunoValido1), Times.Never);
+            Assert.IsType<ViewResult>(result);
         }
 
-        // POST: Alunos/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            var aluno = _context.Details(id);
-            _context.Delete(id);
-            return RedirectToAction(nameof(Index));
-        }
 
-        private IActionResult AlunoExists(int id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            return Ok();
-        }
     }
+
 }

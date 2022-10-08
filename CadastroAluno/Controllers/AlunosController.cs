@@ -14,7 +14,7 @@ namespace CadastroAluno.Controllers
     public class AlunosController : Controller
     {
         private readonly IAlunoRepository _context;
-
+        // Dando poder ao Context
         public AlunosController(IAlunoRepository context)
         {
             _context = context;
@@ -25,6 +25,7 @@ namespace CadastroAluno.Controllers
         {
             return View( _context.Index());
         }
+        // Detalhas pegando atraves do id
         public IActionResult Details(int? id)
         {
             if (id == null || id < 1)
@@ -57,7 +58,7 @@ namespace CadastroAluno.Controllers
             return View(aluno);
         }
 
-        // GET: Alunos/Create
+        // GET: Criando aluno usando create
         public IActionResult Create()
         {
             return View();
@@ -79,7 +80,7 @@ namespace CadastroAluno.Controllers
             return View(aluno);
         }
 
-        // GET: Alunos/Edit/5
+        // GET: Usando o Id
         public  IActionResult Edit(int? id)
         {
             if (id == null)

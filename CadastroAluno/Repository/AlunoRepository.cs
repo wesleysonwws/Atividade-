@@ -35,7 +35,7 @@ namespace CadastroAluno.Repository
         public  Aluno Edit(int? id,Aluno alunoAlterado)
         {
             _context.Entry(alunoAlterado).State = EntityState.Modified;
-            //_context.Clientes.Update(cliente);
+            
              _context.SaveChanges();
             return alunoAlterado;
         }

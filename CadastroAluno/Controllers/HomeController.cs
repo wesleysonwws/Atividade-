@@ -27,7 +27,7 @@ namespace CadastroAluno.Controllers
 
         public IActionResult Index()
         {
-
+            // Retornar em Aluno
             return View(_context.Aluno);
         }
 
